@@ -3,7 +3,7 @@ const express = require('express');
 const dotenv = require('dotenv')
 dotenv.config()
 
-// const PORT = process.env.PORT
+const PORT = process.env.PORT
 
 const app = express();
 const fs = require('fs');
@@ -11,7 +11,6 @@ const path = require('path');
 
 const bodyParser = require('body-parser');
 const cors = require('cors');
-// const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 
@@ -35,7 +34,6 @@ const accessLogStream = fs.createWriteStream(
     { flags: 'a' }
 )
 
-// app.use(helmet());
 app.use(pageRoutes);
 app.use(compression());
 app.use(morgan('combined', { stream: accessLogStream }));
@@ -52,6 +50,10 @@ app.use('/purchase', purchaseRoutes)
 app.use('/premium', premiumFeactureRoutes)
 app.use('/password', resetPasswordRoutes)
 
+app.use((req, res) =>{
+    res.sendFile(path.join(__dirname,`${req.url}`))
+})
+
 User.hasMany(Expense);
 Expense.belongsTo(User);
 
@@ -64,15 +66,9 @@ ForgotPasswordRequest.belongsTo(User);
 User.hasMany(Url);
 Url.belongsTo(User);
 
-app.use((req, res) => {
-    console.log(req.url);
-    res.sendFile(path.join(__dirname,`${req.url}`))
-})
-
-
 sequelize.sync()
 .then(result => {
     console.log("table created");
-    app.listen(3000);
+    app.listen(PORT);
 })
 .catch(err => console.log(err));
