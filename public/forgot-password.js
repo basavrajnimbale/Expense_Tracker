@@ -9,7 +9,7 @@ function forgotpassword(e) {
     }
     console.log(userDetails)
     const token = localStorage.getItem('token')
-    axios.post('http://localhost:3000/password/forgotpassword',userDetails, { headers: { "Authorization": token } }).then(res => {
+    axios.post('/password/forgotpassword',userDetails, { headers: { "Authorization": token } }).then(res => {
         if(res.status === 202){
             document.body.innerHTML += '<div style="color:red;">Mail Successfuly sent <div>'
         } else {

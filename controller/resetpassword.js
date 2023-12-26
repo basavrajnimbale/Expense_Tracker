@@ -39,7 +39,7 @@ const forgotpassword = async (req, res, next) => {
             to: receivers,
             subject: `Confirmation mail to reset password`,
             htmlContent: `<p>Click below to reset password!</p>
-            <a href = "http://localhost:3000/password/resetpassword/${id}">Reset Password</a> `
+            <a href = "${process.env.WEBSITE}/password/resetpassword/${id}">Reset Password</a> `
         });
 
         console.log(result);

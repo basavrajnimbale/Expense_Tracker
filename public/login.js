@@ -10,7 +10,7 @@ function login(e) {
         password: e.target.password.value
     }
     console.log(loginDetails)
-    axios.post('http://localhost:3000/user/login', loginDetails).then(response => {
+    axios.post('/user/login', loginDetails).then(response => {
         if(response.status === 200){
             alert(response.data.message)
             console.log(response.data)
