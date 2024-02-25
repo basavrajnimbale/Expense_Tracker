@@ -1,5 +1,4 @@
 const express = require('express');
-
 const dotenv = require('dotenv')
 dotenv.config()
 
@@ -8,13 +7,11 @@ const PORT = process.env.PORT
 const app = express();
 const fs = require('fs');
 const path = require('path');
-
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const compression = require('compression');
 const morgan = require('morgan');
-
-const sequelize = require('./util/database');
+const mongoose = require('mongoose')
 
 const User = require('./model/users');
 const Expense = require('./model/expenses');
@@ -40,7 +37,7 @@ app.use(morgan('combined', { stream: accessLogStream }));
 
 app.use(cors());
 
-app.use(bodyParser.json({extended: false}));
+app.use(bodyParser.json({ extended: false }));
 
 app.use(express.json());
 
@@ -50,25 +47,28 @@ app.use('/purchase', purchaseRoutes)
 app.use('/premium', premiumFeactureRoutes)
 app.use('/password', resetPasswordRoutes)
 
-app.use((req, res) =>{
-    res.sendFile(path.join(__dirname,`${req.url}`))
+app.get('/set-cookie', (req, res) => {
+    res.cookie('yourCookieName', 'cookieValue', { sameSite: 'None', secure: true });
+    res.send('Cookie set successfully!');
+});
+
+
+app.use((req, res) => {
+    res.sendFile(path.join(__dirname, `${req.url}`))
 })
 
-User.hasMany(Expense);
-Expense.belongsTo(User);
+mongoose
+    .connect(process.env.MONGODB_ID)
+    .then(result => {
+        console.log('connected to mongoose')
+        app.listen(PORT);
+    }).catch(err => {
+        console.log(err);
+    })
 
-User.hasMany(Order);
-Order.belongsTo(User);
-
-User.hasMany(ForgotPasswordRequest);
-ForgotPasswordRequest.belongsTo(User);
-
-User.hasMany(Url);
-Url.belongsTo(User);
-
-sequelize.sync()
-.then(result => {
-    console.log("table created");
-    app.listen(PORT);
-})
-.catch(err => console.log(err));
+// sequelize.sync()
+// .then(result => {
+//     console.log("table created");
+//     app.listen(PORT);
+// })
+// .catch(err => console.log(err));

@@ -1,6 +1,7 @@
 const User = require('../model/users');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 
 function isstringinvalid(string) {
     if (string == undefined || string.length == 0) {
@@ -16,12 +17,11 @@ const Signup = async (req, res, next) => {
         if (isstringinvalid(name) || isstringinvalid(email) || isstringinvalid(password)) {
             return res.status(400).json({ err: "bad parameter. something is missing" })
         }
-        const saltrounds = 10;
-        bcrypt.hash(password, saltrounds, async (err, hash) => {
-            console.log(err)
-            await User.create({ name, email, password: hash });
-            res.status(201).json({ message: 'Successfuly create new user' });
-        })
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // Create a new user using the User model
+        await User.create({ name, email, password: hashedPassword });
     } catch (err) {
         console.error(err);
         res.status(500).json(err);
@@ -35,31 +35,36 @@ function generateAccessToken (id, name, ispremiumuser) {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
+
         if (isstringinvalid(email) || isstringinvalid(password)) {
-            return res.status(400).json({ message: 'Email id or password missing', success: false })
+            return res.status(400).json({ message: 'Email id or password missing', success: false });
         }
-        const user = await User.findAll({ where: { email } })
-        if (user.length > 0) {
-            bcrypt.compare(password, user[0].password, (err, result) => {
-                if (err) {
-                    res.status(500).json({ success: false, message: 'Something wend wrong' })
-                }
-                if (result == true) {
-                    res.status(200).json({ success: true, message: "user logged in successfully", token: generateAccessToken(user[0].id, user[0].name, user[0].ispremiumuser) })
-                }
-                else {
-                    return res.status(400).json({ success: false, message: 'password is incorrect' })
-                }
-            })
+
+        // Find the user by email using the User model
+        const user = await User.findOne({ email });
+
+        if (user) {
+            // Compare the provided password with the hashed password stored in the database
+            const result = await bcrypt.compare(password, user.password);
+
+            if (result) {
+                res.status(200).json({
+                    success: true,
+                    message: 'User logged in successfully',
+                    token: generateAccessToken(user.id, user.name, user.ispremiumuser)
+                });
+            } else {
+                return res.status(400).json({ success: false, message: 'Password is incorrect' });
+            }
         } else {
-            return res.status(404).json({ success: false, message: 'user doesnot exitst' })
+            return res.status(404).json({ success: false, message: 'User does not exist' });
         }
     } catch (err) {
-        res.status(500).json({ message: err, success: false })
+        res.status(500).json({ message: 'Internal server error', success: false });
     }
-}
+};
 
- module.exports = {
+module.exports = {
     Signup,
     login,
     generateAccessToken

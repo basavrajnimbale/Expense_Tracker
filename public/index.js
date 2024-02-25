@@ -16,11 +16,9 @@ async function sendGetRequest(page) {
             number = localStorage.getItem('number');
         }
         const { data } = await axios.get(`/expense/get-expenses?page=${page}&number=${number}`, { headers: { "Authorization": token } });
-        console.log(data);
         const { expenses, pageData } = data;
         localStorage.setItem("lastPage", pageData.lastPage)
         localStorage.setItem("currentPage", page)
-        // const li = document.getElementsByClassName('firstLi')
         ul.innerHTML = '';
         expenses.forEach(expense => {
             displayDetails(expense);
@@ -52,10 +50,11 @@ form.addEventListener('submit', async (e) => {
     let description = document.getElementById('description').value;
     let category = document.getElementById('category').value;
     let expenseDetails = {
-        expenseamount,
-        description,
-        category,
+        expenseamount: expenseamount,
+        description: description,
+        category: category
     }
+    console.log(expenseDetails);
     try {
         const token = localStorage.getItem('token')
         let result = await axios.post('/expense/add-expense ', expenseDetails, { headers: { "Authorization": token } });
@@ -74,17 +73,18 @@ form.addEventListener('submit', async (e) => {
 
 function displayDetails(object) {
     let li = document.createElement('li');
-    li.id = `${object.id}`;
+    li.id = `${object._id}`;
+    console.log(typeof object._id);
     li.classList.add("firstLi")
-    li.innerHTML += `<div>${object.expenseamount} - ${object.description} - ${object.category} <button type='button' class="button" onclick='deleteExpense(${object.id})'>Delete Expense</button></div>`;
+    li.innerHTML += `<div>${object.expenseamount} - ${object.description} - ${object.category} <button type='button' class="button" onclick='deleteExpense(${JSON.stringify(object._id)})'>Delete Expense</button></div>`
     ul.appendChild(li);
 }
 
-async function deleteExpense(id) {
+async function deleteExpense(_id) {
     try {
         const token = localStorage.getItem('token')
-        let result = await axios.delete(`/expense/delete-expense/${id}`, { headers: { "Authorization": token } });
-        document.getElementById(`${id}`).remove();
+        let result = await axios.delete(`/expense/delete-expense/${_id}`, { headers: { "Authorization": token } });
+        document.getElementById(`${_id}`).remove();
         upadatedExpensefun(result.data.user)
     }
 
@@ -125,7 +125,7 @@ function download() {
                 link.download = 'myexpense.csv';
                 console.log(response.data);
 
-                link.innerHTML = `<div>${response.data.url.createdAt}</div>`;
+                link.innerHTML = `<div>${response.data.filename}</div>`;
                 li.appendChild(link);
 
                 // Adding a click event listener to the <li> element
@@ -158,6 +158,7 @@ document.getElementById('rzp-button1').onclick = async function (e) {
                 order_id: options.order_id,
                 payment_id: response.razorpay_payment_id,
             }, { headers: { "Authorization": token } })
+            console.log(options + 'bassssuuuuuu');
             alert('You are a Premium User Now')
             document.getElementById('rzp-button1').style.visibility = "hidden"
             document.getElementById('message').innerHTML = "you are a primium user"
@@ -220,9 +221,7 @@ function parseJwt(token) {
     return JSON.parse(jsonPayload);
 }
 
-
 window.addEventListener('DOMContentLoaded', async () => {
-
     try {
         const token = localStorage.getItem('token')
         const decodeToken = parseJwt(token)

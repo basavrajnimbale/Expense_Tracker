@@ -14,7 +14,7 @@ async function signup(e) {
         const response = await axios.post('/user/signup', signupDetails)
         console.log(response)
             if(response.status === 201){
-                window.location.href = "/views/login.html"
+                window.location.href = "/viiews/login.html"
             } else {
                 throw new Error('Failed to login')
             }

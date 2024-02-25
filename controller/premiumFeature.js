@@ -1,20 +1,23 @@
 const User = require('../model/users');
 const Expense = require('../model/expenses');
-const sequelize = require('../util/database');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 
 const getUserLeaderBoard = async (req, res) => {
-    try{
-        const leaderboardofusers = await User.findAll({
-            order:[['totalExpenses', 'DESC']]
-        })
-        res.status(200).json(leaderboardofusers)
-    } catch (err){
-        console.log(err)
-        res.status(500).json(err)
+    try {
+        const leaderboardOfUsers = await User.find()
+            .sort({ totalExpenses: -1 })
+            .exec();
+
+        res.status(200).json(leaderboardOfUsers);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json(err);
     }
-}
+};
 
 module.exports = {
-    getUserLeaderBoard 
+    getUserLeaderBoard
+
 }
+                                                                                                                                                 
